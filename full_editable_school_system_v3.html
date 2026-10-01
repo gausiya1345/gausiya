@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Madrasa Result Card System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Naskh+Arabic:wght@600;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    :root{
+      --bg1:#0f172a; --bg2:#111827; --bg3:#1e293b; --glass:rgba(255,255,255,.08);
+      --line:rgba(255,255,255,.12); --txt:#e5e7eb; --muted:#94a3b8; --green:#16a34a;
+      --green2:#22c55e; --blue:#2563eb; --orange:#ea580c; --shadow:0 20px 60px rgba(0,0,0,.28);
+    }
+    *{box-sizing:border-box} html,body{margin:0;padding:0}
+    body{
+      font-family:'Inter',sans-serif; color:var(--txt); min-height:100vh;
+      background:
+        radial-gradient(circle at top left, rgba(34,197,94,.16), transparent 25%),
+        radial-gradient(circle at top right, rgba(37,99,235,.18), transparent 25%),
+        linear-gradient(135deg,var(--bg1),var(--bg2),var(--bg3));
+      padding:22px;
+    }
+    .app{max-width:1600px;margin:0 auto;display:grid;grid-template-columns:420px 1fr;gap:24px;align-items:start}
+    .panel{background:var(--glass);border:1px solid var(--line);border-radius:28px;box-shadow:var(--shadow);backdrop-filter:blur(18px)}
+    .sidebar{padding:24px;position:sticky;top:22px;max-height:calc(100vh - 44px);overflow:auto}
+    .brand{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+    .brand h1{margin:0;font-size:28px;font-weight:800;letter-spacing:-.5px}
+    .badge{padding:8px 12px;border-radius:999px;background:rgba(34,197,94,.18);color:#bbf7d0;border:1px solid rgba(34,197,94,.25);font-size:12px;font-weight:800}
+    .sub{color:var(--muted);font-size:14px;line-height:1.7;margin-bottom:20px}
+    .section{margin-bottom:18px;padding:18px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:20px}
+    .section h3{margin:0 0 14px;font-size:15px;font-weight:800;color:#fff}
+    .field{margin-bottom:14px}.field:last-child{margin-bottom:0}
+    .field label{display:block;margin-bottom:8px;font-size:13px;font-weight:700;color:#e2e8f0}
+    input, select, textarea{width:100%;padding:13px 14px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.07);color:#fff;outline:none;font-size:14px}
+    textarea{resize:vertical;min-height:88px} select option{color:#111}
+    .grid2,.grid3{display:grid;gap:12px}
+    .grid2{grid-template-columns:1fr 1fr}
+    .grid3{grid-template-columns:1fr 1fr 1fr}
+    .btn-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
+    button{border:none;cursor:pointer;border-radius:14px;padding:13px 14px;font-size:14px;font-weight:800;transition:.18s ease}
+    button:hover{transform:translateY(-1px)}
+    .btn-green{background:linear-gradient(135deg,var(--green),var(--green2));color:#fff;box-shadow:0 12px 30px rgba(34,197,94,.28)}
+    .btn-blue{background:linear-gradient(135deg,#2563eb,#3b82f6);color:#fff}
+    .btn-orange{background:linear-gradient(135deg,#ea580c,#f97316);color:#fff}
+    .btn-dark{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.12)}
+    .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+    .stat{padding:14px;border-radius:18px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.06)}
+    .stat .k{font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:700}
+    .stat .v{font-size:22px;font-weight:800}
+    .workspace{padding:18px;overflow:auto}
+    .subject-row{display:grid;grid-template-columns:1.5fr .8fr .7fr auto;gap:10px;margin-bottom:10px}
+    #resultCard{width:1120px;margin:0 auto;background:#fff;color:#000;padding:22px;border:2px solid #111;box-shadow:0 10px 30px rgba(0,0,0,.15)}
+    .top-head{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;border-bottom:2px solid #000;padding-bottom:10px}
+    .uni-left,.uni-right{font-size:12px;line-height:1.5;font-weight:700}
+    .uni-center{text-align:center}
+    .uni-center h2{margin:0;font-size:28px;font-weight:800;text-transform:uppercase}
+    .arabic{font-family:'Noto Naskh Arabic', serif;font-size:30px;font-weight:700;margin-top:4px}
+    .subline{font-size:12px;font-weight:600;margin-top:4px}
+    .grade-title{text-align:center;margin:10px 0 4px;font-size:32px;font-weight:800;color:#16a34a}
+    .exam-title{text-align:center;font-size:20px;font-weight:800;margin-bottom:10px;text-transform:uppercase}
+    .info-grid{display:grid;grid-template-columns:1fr auto;gap:14px;border:2px solid #111;border-bottom:none}
+    .student-meta{padding:10px 12px;font-size:15px;line-height:1.8}
+    .student-meta b{display:inline-block;min-width:180px}
+    .photo-box{width:130px;height:150px;border-left:2px solid #111;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#f8fafc}
+    .photo-box img{width:100%;height:100%;object-fit:cover}
+    table{width:100%;border-collapse:collapse}
+    .marks-table th,.marks-table td{border:1px solid #111;padding:6px 8px;font-size:13px;text-align:center}
+    .marks-table th{background:#e5e7eb;font-weight:800}
+    .marks-table td.left{text-align:left}
+    .report-grid{display:grid;grid-template-columns:1.2fr 1fr;border:2px solid #111;border-top:none}
+    .report-box,.remarks-box{border-right:2px solid #111}.remarks-box{border-right:none}
+    .section-title{padding:8px 10px;border-bottom:2px solid #111;background:#f3f4f6;font-size:14px;font-weight:800;text-align:center}
+    .report-table td,.report-table th{border:1px solid #111;padding:7px 8px;font-size:13px}
+    .remarks-content{min-height:258px;padding:12px;font-size:13px;line-height:1.7}
+    .reference{margin-top:10px;border:2px solid #111;padding:10px;font-size:12px;line-height:1.7}
+    .certify{margin-top:12px;display:grid;grid-template-columns:1fr 1fr;align-items:end}
+    .certify .left{font-size:14px;font-style:italic;text-align:center}.certify .right{text-align:right;font-size:14px;line-height:1.8}
+    .mini{font-size:12px;color:#475569}
+    @media (max-width:1200px){.app{grid-template-columns:1fr}.sidebar{position:relative;top:auto;max-height:none}.workspace{padding:12px}}
+    @media print{body{background:#fff;padding:0}.sidebar{display:none!important}.panel,.workspace{background:#fff;border:none;box-shadow:none;padding:0}#resultCard{width:100%;box-shadow:none;border:2px solid #111}}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="panel sidebar">
+      <div class="brand">
+        <h1>Result Card</h1>
+        <span class="badge">Editable School System</span>
+      </div>
+      <div class="sub">Full editable result card system with student data entry, subject entry, class-wise save, PDF/PNG export, and printable layout.</div>
+
+      <div class="section">
+        <h3>School Details</h3>
+        <div class="field"><label>School Name</label><input id="schoolName" value="MADRASA GAUSIYA RIZWIYA ISLAMNAGAR RAMGARH"></div>
+        <div class="field"><label>Address</label><textarea id="schoolAddress">Ramgarh, Ramgarh, Ramgarh, Palamu, Jharkhand - 822110</textarea></div>
+      </div>
+
+      <div class="section">
+        <h3>Student Selection</h3>
+        <div class="grid2">
+          <div class="field"><label>Select Class</label><select id="classSelect"></select></div>
+          <div class="field"><label>New Class Name</label><input id="newClassInput" placeholder="e.g. Class 4"></div>
+        </div>
+        <div class="btn-grid" style="margin-top:0">
+          <button class="btn-dark" id="addClassBtn" type="button">Add Class</button>
+          <button class="btn-dark" id="deleteClassBtn" type="button">Delete Class</button>
+        </div>
+        <div class="field" style="margin-top:14px"><label>Search Student</label><input type="text" id="searchInput" placeholder="Type student name..." /></div>
+        <div class="field"><label>Select Student</label><select id="studentSelect"></select></div>
+      </div>
+
+      <div class="section">
+        <h3>Student Data Entry</h3>
+        <div class="grid2">
+          <div class="field"><label>Adm No</label><input id="admNoInput" value="U101"></div>
+          <div class="field"><label>Roll No</label><input id="rollInput" value="1"></div>
+        </div>
+        <div class="field"><label>Student Name</label><input id="studentNameInput" value="Student Name"></div>
+        <div class="grid2">
+          <div class="field"><label>Division</label><input id="divisionInput" value="A"></div>
+          <div class="field"><label>Class Teacher</label><input id="teacherInput" value="Class Teacher"></div>
+        </div>
+        <div class="grid2">
+          <div class="field"><label>Academic Year</label><input id="academicYear" value="2025-2026"></div>
+          <div class="field"><label>Exam Session</label><input id="examSession" value="Annual Examination 2026"></div>
+        </div>
+        <div class="grid2">
+          <div class="field"><label>Issue Date</label><input id="issueDate"></div>
+          <div class="field"><label>Issue Time</label><input id="issueTime"></div>
+        </div>
+        <div class="field"><label>Upload Student Photo</label><input type="file" id="photoUpload" accept="image/*"></div>
+      </div>
+
+      <div class="section">
+        <h3>Subjects & Marks</h3>
+        <div id="subjectRows"></div>
+        <button class="btn-dark" id="addSubjectBtn" type="button">Add Subject</button>
+        <div class="mini" style="margin-top:10px">Each subject can have its own full marks from dropdown: 25, 50, 75, 100</div>
+      </div>
+
+      <div class="section">
+        <h3>Actions</h3>
+        <div class="btn-grid">
+          <button class="btn-green" id="generateBtn">Generate</button>
+          <button class="btn-blue" id="saveStudentBtn">Save Student</button>
+          <button class="btn-dark" id="newStudentBtn">New Student</button>
+          <button class="btn-dark" id="deleteStudentBtn">Delete Student</button>
+          <button class="btn-blue" id="downloadPdfBtn">Download PDF</button>
+          <button class="btn-orange" id="downloadPngBtn">Download PNG</button>
+          <button class="btn-dark" id="printBtn">Print</button>
+          <button class="btn-dark" id="saveLocalBtn">Save Local</button>
+          <button class="btn-dark" id="loadLocalBtn">Load Local</button>
+          <button class="btn-dark" id="exportDataBtn">Export Data</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>Performance Summary</h3>
+        <div class="stats">
+          <div class="stat"><div class="k">Total</div><div class="v" id="statTotal">0</div></div>
+          <div class="stat"><div class="k">Percentage</div><div class="v" id="statPercent">0%</div></div>
+          <div class="stat"><div class="k">Grade</div><div class="v" id="statGrade">-</div></div>
+          <div class="stat"><div class="k">Rank</div><div class="v" id="statRank">-</div></div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="panel workspace">
+      <div id="resultCard">
+        <div class="top-head">
+          <div class="uni-left"><div id="acYearText">Academic Year: 2025-2026</div></div>
+          <div class="uni-center">
+            <h2 id="schoolNameText">MADRASA GAUSIYA RIZWIYA ISLAMNAGAR RAMGARH</h2>
+                        <div class="subline" id="schoolAddressText">Ramgarh, Ramgarh, Ramgarh, Palamu, Jharkhand - 822110</div>
+          </div>
+          <div class="uni-right" style="text-align:right">
+            <div id="issueDateText">Issued Date: --/--/----</div>
+            <div id="issueTimeText">--:--</div>
+          </div>
+        </div>
+
+        <div class="grade-title">GRADE CARD</div>
+        <div class="exam-title" id="examTitleText">CLASS 1 ANNUAL EXAMINATION 2026 - AUG 2025</div>
+
+        <div class="info-grid">
+          <div class="student-meta">
+            <div><b>Adm No:</b> <span id="admNoText">-</span></div>
+            <div><b>Name:</b> <span id="nameText">Select Student</span></div>
+            <div><b>Standard:</b> <span id="standardText">-</span></div>
+            <div><b>Division:</b> <span id="divisionText">A</span></div>
+            <div><b>Enrl. No:</b> <span id="enrolText">0</span></div>
+          </div>
+          <div class="photo-box"><img id="studentPhoto" src="https://dummyimage.com/130x150/e5e7eb/111827&text=PHOTO" alt="Student Photo"></div>
+        </div>
+
+        <table class="marks-table">
+          <thead>
+            <tr>
+              <th style="width:55px">Sl.No</th>
+              <th style="width:130px">Subject Code</th>
+              <th>Subjects</th>
+              <th style="width:90px">Scored</th>
+              <th style="width:90px">Max.Mark</th>
+              <th style="width:90px">Grade</th>
+              <th style="width:90px">Average</th>
+            </tr>
+          </thead>
+          <tbody id="marksBody"></tbody>
+          <tfoot>
+            <tr>
+              <th colspan="3">Total</th>
+              <th id="totalScored">0</th>
+              <th id="totalMax">0</th>
+              <th id="overallGradeFoot">-</th>
+              <th id="avgFoot">0</th>
+            </tr>
+          </tfoot>
+        </table>
+
+        <div class="report-grid">
+          <div class="report-box">
+            <div class="section-title">ACADEMIC REPORT</div>
+            <table class="report-table" style="width:100%">
+              <tr><th>Field</th><th>Value</th><th>Out of</th></tr>
+              <tr><td>Grand Total</td><td id="grandTotalText">0</td><td id="grandOutText">0</td></tr>
+              <tr><td>Overall Percentage</td><td id="overallPercentText">0</td><td>100</td></tr>
+              <tr><td>No. of Subjects Failed</td><td id="failedText">0</td><td id="subjectCountText">0</td></tr>
+              <tr><td>Overall Grade</td><td id="overallGradeText">-</td><td>-</td></tr>
+              <tr><td>Overall Rank</td><td id="rankText">-</td><td id="rankOutText">-</td></tr>
+              <tr><td>Performance Level</td><td id="performanceText">-</td><td>-</td></tr>
+              <tr><td>Average Percentage</td><td id="avgPercentText">0</td><td>-</td></tr>
+              <tr><td>GPA</td><td id="gpaText">0.00</td><td>5.00</td></tr>
+            </table>
+          </div>
+          <div class="remarks-box">
+            <div class="section-title">REMARKS AND ACKNOWLEDGEMENT</div>
+            <div class="remarks-content">
+              <div id="remarksText">-</div>
+              <br><br><br>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:60px">
+                <div style="text-align:center;border-top:1px solid #111;padding-top:8px">Guardian</div>
+                <div style="text-align:center;border-top:1px solid #111;padding-top:8px" id="teacherText">Class Teacher</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="reference">
+          <b>Reference:</b><br>
+          Grades: A+ = 90-100%, A = 80-89%, B = 70-79%, C+ = 60-69%, C = 50-59%, D = 40-49%, F = Below 40%<br>
+          Subject full marks can be selected manually for each subject from dropdown: <b>25, 50, 75, 100</b>.<br>
+          <span class="mini">Disclaimer: This result is system-generated for academic record display.</span>
+        </div>
+
+        <div class="certify">
+          <div class="left">Certification</div>
+          <div class="right">(Sign & Seal)<br>Principal</div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+<script>
+const STORAGE_KEY = 'madrasa_result_system_v1';
+let appData = {
+  "Class 1": [
+    {admNo:"U101", roll:1, name:"Student 1", division:"A", teacher:"Class Teacher", photo:"", subjects:[{name:"Urdu",score:24},{name:"Tilawat",score:20}]}
+  ]
+};
+let uploadedPhoto = "";
+
+const $ = id => document.getElementById(id);
+const today = new Date();
+$('issueDate').value = today.toISOString().slice(0,10);
+$('issueTime').value = today.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+
+function loadAppData(){
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if(raw){ try{ appData = JSON.parse(raw); }catch(e){} }
+}
+function saveAppData(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(appData)); }
+
+function getCurrentClass(){
+  const cls = $('classSelect').value || 'Class 1';
+  if(!appData[cls]) appData[cls] = [];
+  return cls;
+}
+function currentStudents(){ return appData[getCurrentClass()]; }
+
+
+function populateClasses(){
+  const classes = Object.keys(appData);
+  if(!classes.length) appData['Class 1'] = [];
+  $('classSelect').innerHTML = Object.keys(appData).map(c=>`<option value="${c}">${c}</option>`).join('');
+  if(!$('classSelect').value && Object.keys(appData).length) $('classSelect').value = Object.keys(appData)[0];
+}
+
+function addClass(){
+  const name = $('newClassInput').value.trim();
+  if(!name) return alert('Enter class name.');
+  if(!appData[name]) appData[name] = [];
+  saveAppData();
+  populateClasses();
+  $('classSelect').value = name;
+  $('newClassInput').value = '';
+  populateStudents();
+  generateCard();
+}
+
+function deleteClass(){
+  const cls = getCurrentClass();
+  if(!cls) return;
+  delete appData[cls];
+  if(!Object.keys(appData).length) appData['Class 1'] = [];
+  saveAppData();
+  populateClasses();
+  populateStudents();
+  generateCard();
+}
+
+function populateStudents(){
+  const q = $('searchInput').value.trim().toLowerCase();
+  const list = currentStudents().filter(s => s.name.toLowerCase().includes(q));
+  $('studentSelect').innerHTML = list.map(s=>`<option value="${s.admNo}">${s.name}</option>`).join('');
+  if(list.length) loadStudent(list[0].admNo); else newStudent();
+}
+
+function addSubjectRow(name='', score='', max='50'){
+  const wrap = document.createElement('div');
+  wrap.className = 'subject-row';
+  wrap.innerHTML = `
+    <input type="text" class="sub-name" placeholder="Subject Name" value="${name}">
+    <input type="number" class="sub-score" placeholder="Marks" value="${score}">
+    <select class="sub-max">
+      <option value="25">25</option>
+      <option value="50" selected>50</option>
+      <option value="75">75</option>
+      <option value="100">100</option>
+    </select>
+    <button type="button" class="btn-dark remove-subject">X</button>
+  `;
+  wrap.querySelector('.sub-max').value = String(max || 50);
+  wrap.querySelector('.remove-subject').onclick = ()=>{ wrap.remove(); generateCard(); };
+  wrap.querySelector('.sub-name').oninput = generateCard;
+  wrap.querySelector('.sub-score').oninput = generateCard;
+  wrap.querySelector('.sub-max').onchange = generateCard;
+  $('subjectRows').appendChild(wrap);
+}
+
+function getFormStudent(){
+  const subjects = [...document.querySelectorAll('.subject-row')].map((row,i)=>({
+    name: row.querySelector('.sub-name').value.trim() || `Subject ${i+1}`,
+    score: Number(row.querySelector('.sub-score').value || 0),
+    max: Number(row.querySelector('.sub-max').value || 50)
+  })).filter(s=>s.name);
+  return {
+    admNo: $('admNoInput').value.trim() || 'U001',
+    roll: Number($('rollInput').value || 1),
+    name: $('studentNameInput').value.trim() || 'Student Name',
+    division: $('divisionInput').value.trim() || 'A',
+    teacher: $('teacherInput').value.trim() || 'Class Teacher',
+    photo: uploadedPhoto || $('studentPhoto').src,
+    subjects
+  };
+}
+
+function loadStudent(admNo){
+  const st = currentStudents().find(x=>x.admNo===admNo);
+  if(!st) return;
+  $('admNoInput').value = st.admNo || '';
+  $('rollInput').value = st.roll || '';
+  $('studentNameInput').value = st.name || '';
+  $('divisionInput').value = st.division || 'A';
+  $('teacherInput').value = st.teacher || 'Class Teacher';
+  uploadedPhoto = st.photo || '';
+  if(uploadedPhoto) $('studentPhoto').src = uploadedPhoto;
+  $('subjectRows').innerHTML = '';
+  (st.subjects || []).forEach(s=>addSubjectRow(s.name, s.score, s.max || 50));
+  generateCard();
+}
+
+function newStudent(){
+  $('admNoInput').value = '';
+  $('rollInput').value = '';
+  $('studentNameInput').value = '';
+  $('divisionInput').value = 'A';
+  $('teacherInput').value = 'Class Teacher';
+  $('subjectRows').innerHTML = '';
+  addSubjectRow('Urdu','',50);
+  addSubjectRow('Tilawat','',50);
+  uploadedPhoto = '';
+  $('studentPhoto').src = 'https://dummyimage.com/130x150/e5e7eb/111827&text=PHOTO';
+  generateCard();
+}
+
+function saveStudent(){
+  const cls = getCurrentClass();
+  const st = getFormStudent();
+  const idx = appData[cls].findIndex(x=>x.admNo===st.admNo);
+  if(idx >= 0) appData[cls][idx] = st; else appData[cls].push(st);
+  appData[cls].sort((a,b)=>(a.roll||0)-(b.roll||0));
+  saveAppData();
+  populateStudents();
+  $('studentSelect').value = st.admNo;
+  alert('Student saved.');
+}
+
+function deleteStudent(){
+  const cls = getCurrentClass();
+  const admNo = $('studentSelect').value;
+  appData[cls] = appData[cls].filter(x=>x.admNo!==admNo);
+  saveAppData();
+  populateStudents();
+}
+
+function percentageToGrade(p){
+  if (p >= 90) return "A+";
+  if (p >= 80) return "A";
+  if (p >= 70) return "B";
+  if (p >= 60) return "C+";
+  if (p >= 50) return "C";
+  if (p >= 40) return "D";
+  return "F";
+}
+function percentageToGPA(p){
+  if (p >= 90) return 5.0;
+  if (p >= 80) return 4.5;
+  if (p >= 70) return 4.0;
+  if (p >= 60) return 3.5;
+  if (p >= 50) return 3.0;
+  if (p >= 40) return 2.0;
+  return 0.0;
+}
+function performanceLabel(p){
+  if (p >= 90) return "OPL";
+  if (p >= 80) return "Excellent";
+  if (p >= 70) return "Very Good";
+  if (p >= 60) return "Good";
+  if (p >= 50) return "Average";
+  if (p >= 40) return "MPL";
+  return "Below MPL";
+}
+function autoRemark(p, failCount){
+  if (p >= 90) return "Excellent academic performance and strong consistency.";
+  if (p >= 80) return "Very good performance with commendable effort.";
+  if (p >= 70) return "Good performance. Continue regular improvement.";
+  if (p >= 60) return "Satisfactory performance with scope for improvement.";
+  if (p >= 50) return "Average performance. More focused practice is recommended.";
+  if (p >= 40) return failCount > 0 ? "Needs improvement in weak subjects." : "Below expected level. Improvement is needed.";
+  return "Poor academic performance. Immediate improvement is required.";
+}
+
+function getRank(cls, currentAdmNo){
+  const ranked = (appData[cls] || []).map(st=>{
+    let total=0,maxTotal=0;
+    (st.subjects||[]).forEach(sub=>{
+      total += Number(sub.score||0);
+      maxTotal += Number(sub.max || 50);
+    });
+    const percent = maxTotal ? (total/maxTotal)*100 : 0;
+    return {admNo: st.admNo, percent, total};
+  }).sort((a,b)=> b.percent - a.percent || b.total - a.total);
+  return { rank: ranked.findIndex(x=>x.admNo===currentAdmNo)+1, totalStudents: ranked.length };
+}
+
+function generateCard(){
+  const cls = getCurrentClass();
+  const st = getFormStudent();
+  let total=0, maxTotal=0, failCount=0;
+  $('marksBody').innerHTML = '';
+  st.subjects.forEach((sub, idx)=>{
+    const score = Number(sub.score || 0);
+    const max = Number(sub.max || 50);
+    const percent = max ? (score/max)*100 : 0;
+    const grade = percentageToGrade(percent);
+    if(score < (max*0.4)) failCount++;
+    total += score; maxTotal += max;
+    const code = `SUB-${idx+1}`;
+    $('marksBody').innerHTML += `<tr>
+      <td>${idx+1}</td>
+      <td>${code}</td>
+      <td class="left">${sub.name}</td>
+      <td>${score}</td>
+      <td>${max}</td>
+      <td>${grade}</td>
+      <td>${Math.round(percent)}</td>
+    </tr>`;
+  });
+
+  const overallPercent = maxTotal ? (total/maxTotal)*100 : 0;
+  const overallGrade = percentageToGrade(overallPercent);
+  const gpa = percentageToGPA(overallPercent);
+  const perf = performanceLabel(overallPercent);
+  const rankInfo = getRank(cls, st.admNo);
+  const remark = autoRemark(overallPercent, failCount);
+
+  $('schoolNameText').textContent = $('schoolName').value;
+  $('schoolAddressText').textContent = $('schoolAddress').value;
+  $('acYearText').textContent = `Academic Year: ${$('academicYear').value}`;
+  $('issueDateText').textContent = `Issued Date: ${$('issueDate').value}`;
+  $('issueTimeText').textContent = $('issueTime').value;
+  $('examTitleText').textContent = `${cls.toUpperCase()} ${$('examSession').value.toUpperCase()} - AUG 2025`;
+
+  $('admNoText').textContent = st.admNo;
+  $('nameText').textContent = st.name;
+  $('standardText').textContent = cls;
+  $('divisionText').textContent = st.division;
+  $('enrolText').textContent = st.roll;
+  $('teacherText').textContent = st.teacher;
+  $('remarksText').textContent = remark;
+
+  if(uploadedPhoto) $('studentPhoto').src = uploadedPhoto;
+
+  $('totalScored').textContent = total;
+  $('totalMax').textContent = maxTotal;
+  $('overallGradeFoot').textContent = overallGrade;
+  $('avgFoot').textContent = Math.round(overallPercent);
+
+  $('grandTotalText').textContent = total;
+  $('grandOutText').textContent = maxTotal;
+  $('overallPercentText').textContent = overallPercent.toFixed(2);
+  $('failedText').textContent = failCount;
+  $('subjectCountText').textContent = st.subjects.length;
+  $('overallGradeText').textContent = overallGrade;
+  $('rankText').textContent = rankInfo.rank || '-';
+  $('rankOutText').textContent = rankInfo.totalStudents || '-';
+  $('performanceText').textContent = perf;
+  $('avgPercentText').textContent = overallPercent.toFixed(2);
+  $('gpaText').textContent = gpa.toFixed(2);
+
+  $('statTotal').textContent = total;
+  $('statPercent').textContent = overallPercent.toFixed(2) + '%';
+  $('statGrade').textContent = overallGrade;
+  $('statRank').textContent = `${rankInfo.rank || '-'}/${rankInfo.totalStudents || '-'}`;
+}
+
+async function downloadPDF(){
+  const { jsPDF } = window.jspdf;
+  const card = $('resultCard');
+  const canvas = await html2canvas(card, { scale: 2, useCORS: true });
+  const imgData = canvas.toDataURL('image/png');
+  const pdf = new jsPDF('p', 'mm', 'a4');
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
+  const imgWidth = pageWidth;
+  const imgHeight = (canvas.height * imgWidth) / canvas.width;
+  if (imgHeight <= pageHeight) {
+    pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+  } else {
+    let heightLeft = imgHeight, position = 0;
+    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+    heightLeft -= pageHeight;
+    while (heightLeft > 0) {
+      position = heightLeft - imgHeight;
+      pdf.addPage();
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+    }
+  }
+  pdf.save(`${$('studentNameInput').value || 'result-card'}.pdf`);
+}
+async function downloadPNG(){
+  const card = $('resultCard');
+  const canvas = await html2canvas(card, { scale: 2, useCORS: true });
+  const link = document.createElement('a');
+  link.download = `${$('studentNameInput').value || 'result-card'}.png`;
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+function exportData(){
+  const blob = new Blob([JSON.stringify(appData, null, 2)], {type:'application/json'});
+  const link = document.createElement('a');
+  link.download = 'school-result-data.json';
+  link.href = URL.createObjectURL(blob);
+  link.click();
+}
+
+$('addSubjectBtn').onclick = ()=> addSubjectRow();
+$('generateBtn').onclick = generateCard;
+$('saveStudentBtn').onclick = saveStudent;
+$('newStudentBtn').onclick = newStudent;
+$('deleteStudentBtn').onclick = deleteStudent;
+$('downloadPdfBtn').onclick = downloadPDF;
+$('downloadPngBtn').onclick = downloadPNG;
+$('printBtn').onclick = ()=>window.print();
+$('saveLocalBtn').onclick = ()=>{ saveAppData(); alert('Data saved in local storage.'); };
+$('loadLocalBtn').onclick = ()=>{ loadAppData(); populateStudents(); generateCard(); alert('Local storage data loaded.'); };
+$('exportDataBtn').onclick = exportData;
+$('searchInput').oninput = populateStudents;
+$('studentSelect').onchange = ()=> loadStudent($('studentSelect').value);
+$('classSelect').onchange = ()=> { populateStudents(); generateCard(); };
+$('addClassBtn').onclick = addClass;
+$('deleteClassBtn').onclick = deleteClass;
+['schoolName','schoolAddress','admNoInput','rollInput','studentNameInput','divisionInput','teacherInput','academicYear','examSession','issueDate','issueTime','newClassInput']
+.forEach(id => $(id).addEventListener('input', generateCard));
+
+$('photoUpload').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev){
+    uploadedPhoto = ev.target.result;
+    $('studentPhoto').src = uploadedPhoto;
+    generateCard();
+  }
+  reader.readAsDataURL(file);
+});
+
+loadAppData();
+populateClasses();
+populateStudents();
+if(!$('subjectRows').children.length) newStudent();
+generateCard();
+</script>
+</body>
+</html>

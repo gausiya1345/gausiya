@@ -1,0 +1,49 @@
+# Dependencies
+node_modules/
+
+# Build output
+/dist/
+/build/
+.vite/
+coverage/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Databases and local data
+*.db
+*.sqlite
+*.sqlite3
+*.db-shm
+*.db-wal
+*.db-journal
+madarsa.db*
+
+data.db
+data.db-shm
+data.db-wal
+data.db-journal
+
+# Logs and cache
+*.log
+logs/
+.cache/
+.tmp/
+.temp/
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+.vscode/
+
+# Generated assets
+*.png
+*.jpg
+*.jpeg
+*.webp
+
+# Local helper scripts (optional, keep if you want them in GitHub)
+# reset_seed.ts
+tmp_seed.ts
